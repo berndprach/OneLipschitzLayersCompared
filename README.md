@@ -7,6 +7,8 @@ The original code can be found [here](https://github.com/berndprach/1LipschitzLa
 
 **Work in progress!**
 
+<img src="https://github.com/berndprach/OneLipschitzLayersCompared/blob/main/data/star_plot.png" alt="Radar plot of results" width="800"/>
+
 # Instructions:
 
 Runs scrips e.g. in the following way:
