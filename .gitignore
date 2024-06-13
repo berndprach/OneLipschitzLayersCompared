@@ -2,6 +2,7 @@
 __pycache__/
 .coverage
 
+outputs/
 *.pt
 
 /data/datasets
