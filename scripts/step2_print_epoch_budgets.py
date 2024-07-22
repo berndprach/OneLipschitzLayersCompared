@@ -3,6 +3,7 @@ import os
 
 import yaml
 
+from . import constants
 from .constants import get_batch_times_path
 
 BUDGET_SECONDS = 2 * 60 * 60  # 2 hours
@@ -23,6 +24,9 @@ def main(dataset_name: str = "CIFAR10"):
     
     print("Epoch Budgets:")
     print(yaml.dump(epoch_budgets))
+
+    fp = constants.EPOCH_BUDGETS_2H_FILES[dataset_name]
+    print(f"Save epoch budgets to file {fp} in order to use it for training.")
 
 
 def get_epoch_budget(time_per_batch, nrof_hours=2):

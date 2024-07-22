@@ -20,21 +20,64 @@ def add_unit(time_in_seconds: float):
     return f"{time_in_seconds:.2f} sec"
 
 
-def evaluate_seconds_per_batch(evaluation_function, loader, nrof_batches=1):
-    batch_times = []
-    for i, (batch, _) in enumerate(itertools.cycle(loader)):
-        if i >= nrof_batches:
+def get_training_mean(model, loader, nrof_batches):
+    model.train()
+    optimizer = torch.optim.SGD(model.parameters(), lr=LR, momentum=0.9)
+    
+    # Warm up:
+    first_batch = next(iter(loader))
+    out = model(first_batch[0])
+    out.sum().backward()
+    optimizer.step()
+    
+    torch.cuda.synchronize()
+    start_time = time.time()
+
+    for i, (batch_x, _) in enumerate(itertools.cycle(loader)):
+        out = model(batch_x)
+        out.sum().backward()
+        optimizer.step()
+        
+        if i+1 == nrof_batches:
             break
-        start = time.time()
-        evaluation_function(batch)
-        end = time.time()
-        batch_times.append(end - start)
-    return batch_times
+
+    
+    torch.cuda.synchronize()
+    training_sum = time.time() - start_time
+    training_mean_seconds = training_sum / nrof_batches
+    return training_mean_seconds
+
+
+def get_validation_mean(model, val_loader, nrof_batches, cached=True):
+    model.eval()
+
+    model_forward = functools.partial(forward_pass, model)
+
+    if cached:
+        model_forward = torch.nn.utils.parametrize.cached()(model_forward)
+    
+    # Warm up and cache:
+    first_batch = next(iter(val_loader))
+    model_forward(first_batch[0])
+
+    torch.cuda.synchronize()
+    start_time = time.time()
+
+    for i, (batch_x, _) in enumerate(itertools.cycle(val_loader)):
+        model_forward(batch_x)
+        
+        if i+1 == nrof_batches:
+            break
+    
+    torch.cuda.synchronize()
+    val_sum = time.time() - start_time
+    val_mean_seconds = val_sum / nrof_batches
+    return val_mean_seconds
+
 
 
 @torch.no_grad()
-def forward_pass(model, batch, device="cuda"):
-    batch = batch.to(device)
+def forward_pass(model, batch):
     out = model(batch)
     out.sum()
 
@@ -46,40 +89,7 @@ def backward_pass(model, optimizer, batch, device="cuda"):
     optimizer.step()
 
 
-def evaluate_seconds_per_training_batch(model,
-                                        train_loader,
-                                        nrof_batches=1,
-                                        device="cuda"):
-    model.train()
-    model.to(device)
-    optimizer = torch.optim.SGD(model.parameters(), lr=LR, momentum=0.9)
-    model_backward = functools.partial(
-        backward_pass, model, optimizer, device=device
-    )
-    batch_times = evaluate_seconds_per_batch(
-        model_backward, train_loader, nrof_batches=nrof_batches
-    )
-    return batch_times
 
-
-def evaluate_second_per_validation_batch(model,
-                                         val_loader,
-                                         nrof_batches=1,
-                                         cached=True,
-                                         device="cuda"):
-    model.eval()
-    model.to(device)
-    model_forward = functools.partial(forward_pass, model, device=device)
-
-    evaluation_function = evaluate_seconds_per_batch
-    if cached:
-        evaluation_function = torch.nn.utils.parametrize.cached()(
-            evaluation_function)
-
-    val_batch_times = evaluation_function(model_forward,
-                                          val_loader,
-                                          nrof_batches=nrof_batches)
-    return val_batch_times
 
 
 def evaluate_all_model_time_statistics(model: torch.nn.Module,
@@ -87,28 +97,8 @@ def evaluate_all_model_time_statistics(model: torch.nn.Module,
                                        test_loader,
                                        nrof_batches: int = 100,
                                        ):
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-
-    train_batch_times = evaluate_seconds_per_training_batch(
-        model, train_loader, nrof_batches=1 + nrof_batches, device=device)
-    train_time_str = ", ".join([add_unit(t) for t in train_batch_times[:5]])
-    train_mean = np.mean(train_batch_times[1:])
-    train_std = np.std(train_batch_times[1:])
-
-    test_batch_times = evaluate_second_per_validation_batch(
-        model, test_loader, nrof_batches=1 + nrof_batches, device=device)
-    test_time_str = ", ".join([add_unit(t) for t in test_batch_times[:5]])
-
-    # Track more actually:
-    test_cached_mean = np.mean(test_batch_times[1:])
-    test_cached_std = np.std(test_batch_times[1:])
-
-    test_caching_time = test_batch_times[0] - test_cached_mean
 
     return {
-        "train_mean": train_mean,
-        "train_std": train_std,
-        "test_cached_mean": test_cached_mean,
-        "test_cached_std": test_cached_std,
-        "test_caching_time": test_caching_time,
+        "train_mean": get_training_mean(model, train_loader, nrof_batches),
+        "test_cached_mean": get_validation_mean(model, test_loader, nrof_batches, cached=True),
     }
