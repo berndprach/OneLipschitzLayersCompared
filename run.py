@@ -12,11 +12,11 @@ def run_main():
 
     import_str = get_import_str(file_path)
 
-    print(f"> import {import_str} as module")
+    print(f"\n> import {import_str} as module")
     module = importlib.import_module(import_str)
 
     fn = getattr(module, "main")
-    print(f"> module.main({sub_args_str})")
+    print(f"\n> module.main({sub_args_str})")
     fn(*sub_args)
 
 

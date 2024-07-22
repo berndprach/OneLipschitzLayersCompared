@@ -3,6 +3,7 @@ Skew Ortogonal Convolution implementation is adapted from https://github.com/sin
 """
 import math
 
+import torch
 import torch.nn.functional as F
 import torch.nn as nn
 from torch import Tensor

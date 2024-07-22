@@ -20,7 +20,8 @@ def main(dataset_name: str = "CIFAR10"):
     # Save:
     # with open(constants.EPOCH_BUDGETS_2H_FILE, "w") as f:
     #     yaml.dump(epoch_budgets, f)
-
+    
+    print("Epoch Budgets:")
     print(yaml.dump(epoch_budgets))
 
 

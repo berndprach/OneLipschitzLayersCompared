@@ -21,6 +21,7 @@ def main(idx: int, dataset_name: str = "CIFAR10"):
 
     try:
         save_results_to_file(model, data_preprocessor, idx, results_fp)
+        print(f"Saved measurement to {results_fp}.")
     except Exception as e:
         print(f"An error occurred: {e}")
         save_exception_to_file(e, idx, results_fp)

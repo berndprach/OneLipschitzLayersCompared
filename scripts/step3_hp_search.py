@@ -41,6 +41,7 @@ def main(idx: int, dataset_name: str = "CIFAR10", nrof_hours: float = 2):
     final_val_stats = trainer.evaluate(data_preprocessor.val)
     with open(constants.HP_SEARCH_RESULTS_FILE, "a") as f:
         f.write(f"{idx}{SEP} {hp}{SEP} {final_val_stats}\n")
+    print(f"Append results of this hp search run to {constants.HP_SEARCH_RESULTS_FILE}.")
 
 
 def get_data_preprocessor(dataset_name):
@@ -53,6 +54,7 @@ def get_data_preprocessor(dataset_name):
 
 def get_epoch_budget(idx, dataset_name, nrof_hours):
     fp = constants.EPOCH_BUDGETS_2H_FILES[dataset_name]
+    print(f"Reading epoch budgets from {fp}.")
     with open(fp, "r") as f:
         epoch_budgets_2h = yaml.load(f, Loader=yaml.SafeLoader)
     epoch_budget = epoch_budgets_2h[idx] * nrof_hours // 2

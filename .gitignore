@@ -3,7 +3,10 @@ __pycache__/
 .coverage
 
 outputs/
+pytorch/
+
 *.pt
+*.sh
 
 /data/datasets
 

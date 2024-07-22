@@ -30,9 +30,14 @@ def get_model(size_name: str, method_name: str) -> torch.nn.Sequential:
     linear_cls = LINEAR_LAYERS.get(method_name, None)
     conv_cls = layers.COMPARED_LAYERS.get(method_name, layers.Conv2d)
 
-    return simplified_conv_net.create_from_size(
+    model = simplified_conv_net.create_from_size(
         size_name=size_name,
         input_resolution=32,
         get_conv=conv_cls,
         get_linear=linear_cls
     )
+    
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    model.to(device)
+    return model
+

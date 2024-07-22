@@ -22,6 +22,10 @@ python run.py scripts/step1_measure_batch_time.py 31
 python run.py scripts/step2_print_epoch_budgets.py
 ```
 
+```[bash]
+python run.py scripts/step3_hp_search.py 1
+```
+
 
 # Requirements:
  - PyTorch

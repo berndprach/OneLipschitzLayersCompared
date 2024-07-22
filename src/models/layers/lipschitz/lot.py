@@ -3,6 +3,7 @@ Based on https://github.com/AI-secure/Layerwise-Orthogonal-Training
 """
 import math
 
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F

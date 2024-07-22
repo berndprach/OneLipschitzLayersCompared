@@ -90,10 +90,10 @@ def get_conv_net(hp: SimplifiedConvNetHyperparameters) -> nn.Sequential:
 
     final_width = hp.base_width * 2 ** hp.nrof_blocks
     if hp.get_linear is not None:
-        conv_net.flatten = nn.Flatten(),
+        conv_net.flatten = nn.Flatten()
         conv_net.head = hp.get_linear(final_width, final_width)
     else:
-        conv_net.head = hp.get_conv_head(final_width, hp.nrof_classes, 1)
+        conv_net.head = hp.get_conv_head(final_width, final_width, 1)
         conv_net.flatten = nn.Flatten()
 
     conv_net.first_channels = FirstChannels(hp.nrof_classes)
@@ -107,8 +107,13 @@ def create(*args, **kwargs) -> nn.Sequential:
 
 def create_from_size(size_name: str, input_resolution: int = 32, **kwargs):
     nrof_blocks = integer_log2(input_resolution)
-    base_width_32 = BASE_WIDTHS[size_name]
-    base_width = base_width_32 * 2**5 // 2**nrof_blocks
+    
+    # base_width_32 = BASE_WIDTHS[size_name]
+    # base_width = base_width_32 * 2**5 // 2**nrof_blocks
+    
+    final_width = BASE_WIDTHS[size_name] * 2**5
+    base_width = final_width // 2**nrof_blocks
+    
     return create(base_width=base_width, nrof_blocks=nrof_blocks, **kwargs)
 
 
