@@ -37,10 +37,12 @@ def main(idx: int, dataset_name: str = "CIFAR10", nrof_hours: float = 2):
     final_val_stats = trainer.evaluate(data_preprocessor.test)
     with open(constants.TEST_RESULTS_FILE, "a") as f:
         f.write(f"{idx}{SEP} {final_val_stats}\n")
+    print(f"Appended test set performance for file {final_val_stats}.")
 
 
 def get_best_hps(idx, dataset_name):
     best_hp_fp = constants.BEST_HP_FILES[dataset_name]
+    print(f"Loading best hyperparameters from {best_hp_fp}.")
     with open(best_hp_fp, "r") as f:
         best_hps = yaml.load(f, Loader=yaml.SafeLoader)
     return best_hps[idx]

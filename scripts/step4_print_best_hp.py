@@ -29,7 +29,9 @@ def get_results(dataset_name):
             idx = int(idx_str)
             if idx not in results:
                 results[idx] = []
-
+            
+            # hp_dict = eval(hp_dict_str)
+            # stats_dict = eval(final_stats_str)
             results[idx].append((eval(hp_dict_str), eval(final_stats_str)))
 
     for key in sorted(results.keys()):
