@@ -4,29 +4,29 @@ import os
 import yaml
 
 from . import constants
-from .constants import get_batch_times_path
+from .constants import get_batch_times_path, BATCH_SIZE
 
 BUDGET_SECONDS = 2 * 60 * 60  # 2 hours
-NROF_BATCHES_IN_EPOCH = 50_000 // 256 + 1
+NROF_BATCHES_IN_EPOCH = int(math.ceil(50_000 / BATCH_SIZE))
 
 
 def main(dataset_name: str = "CIFAR10"):
-    results = get_results(dataset_name)
+    results = get_batch_times(dataset_name)
     epoch_budgets = {}
     for idx in sorted(results.keys()):
         time_per_batch = results[idx]["train_mean"]
         epoch_budget = get_epoch_budget(time_per_batch)
         epoch_budgets[idx] = epoch_budget
 
-    # Save:
-    # with open(constants.EPOCH_BUDGETS_2H_FILE, "w") as f:
-    #     yaml.dump(epoch_budgets, f)
-    
     print("Epoch Budgets:")
     print(yaml.dump(epoch_budgets))
 
     fp = constants.EPOCH_BUDGETS_2H_FILES[dataset_name]
     print(f"Save epoch budgets to file {fp} in order to use it for training.")
+
+    # Save:
+    # with open(constants.EPOCH_BUDGETS_2H_FILE, "w") as f:
+    #     yaml.dump(epoch_budgets, f)
 
 
 def get_epoch_budget(time_per_batch, nrof_hours=2):
@@ -36,16 +36,20 @@ def get_epoch_budget(time_per_batch, nrof_hours=2):
     return epoch_budget
 
 
-def get_results(dataset_name):
+def get_batch_times(dataset_name):
     bt_path = get_batch_times_path(dataset_name)
     if not os.path.exists(bt_path):
-        raise ValueError(f"File {bt_path} does not yet exist. "
-                         f"First run step1_measure_batch_times!")
+        print(f"File {bt_path} does not exist!")
+        return {}
+
+    with open(bt_path, "r") as f:
+        lines = f.readlines()
 
     results = {}
-    with open(bt_path, "r") as f:
-        for line in f:
-            idx_str, result_dict_str, exception_str = line.strip().split("; ")
-            if exception_str == "None":
-                results[int(idx_str)] = eval(result_dict_str)
+    sep = constants.SEPERATOR
+    for line in lines:
+        idx_str, result_dict_str, exception_str = line.strip().split(sep)
+        if exception_str == "None":
+            results[int(idx_str)] = eval(result_dict_str)
+
     return results

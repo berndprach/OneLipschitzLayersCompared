@@ -1,59 +1,46 @@
 
-import torch
 import yaml
 
-from src import data, metrics, run_logging
+from src import run_logging
+from src.data.get_data_preprocessor import get_data_preprocessor
 from src.run_logging import Timer
-from src.trainer import Trainer
+from src.models.model_layer_combinations import get_model_by_idx
 
-from . import constants
-from .step3_hp_search import get_epoch_budget, get_optimizer, get_metrics
-from .step1_measure_batch_time import get_model_from_idx
+from . import constants as c
+from . import step3_hp_search as step3
 from .util import convert_arguments_from_strings
-
-SEP = ";"
 
 
 @convert_arguments_from_strings
 def main(idx: int, dataset_name: str = "CIFAR10", nrof_hours: float = 2):
-    model = get_model_from_idx(idx)
-    data_preprocessor = get_data_preprocessor(dataset_name)
-
+    model = get_model_by_idx(idx)
+    data_preprocessor = get_data_preprocessor(dataset_name, c.BATCH_SIZE, 0.)
+    epochs = step3.get_epoch_budget(idx, dataset_name, nrof_hours)
     best_hps = get_best_hps(idx, dataset_name)
 
-    epochs = get_epoch_budget(idx, dataset_name, nrof_hours)
-    print(f"Training model {idx} for {epochs} epochs.")
+    print(f"Training model {idx} for {epochs} epochs with {best_hps}")
 
-    loss_function = metrics.OffsetXent(
-        offset=constants.LOSS_OFFSET,
-        temperature=constants.LOSS_TEMPERATURE
-    )
-    optimizer = get_optimizer(model, best_hps["lr"], best_hps["wd"], epochs)
-    trainer = Trainer(
-        model, loss_function, optimizer, get_metrics(loss_function)
-    )
+    trainer = step3.get_trainer(epochs, model, best_hps["lr"], best_hps["wd"])
     train_no_val(trainer, data_preprocessor, epochs)
 
     final_val_stats = trainer.evaluate(data_preprocessor.test)
-    with open(constants.TEST_RESULTS_FILE, "a") as f:
-        f.write(f"{idx}{SEP} {final_val_stats}\n")
-    print(f"Appended test set performance for file {final_val_stats}.")
+
+    fp = c.get_test_results_path(dataset_name)
+    save_to(fp, final_val_stats, idx)
+
+
+def save_to(fp, final_val_stats, idx):
+    with open(fp, "a") as f:
+        f.write(f"{idx}{c.SEPERATOR}{final_val_stats}\n")
+    print(f"Appended test set performance for file {fp}.")
 
 
 def get_best_hps(idx, dataset_name):
-    best_hp_fp = constants.BEST_HP_FILES[dataset_name]
+    best_hp_fp = c.BEST_HP_FILES[dataset_name]
     print(f"Loading best hyperparameters from {best_hp_fp}.")
     with open(best_hp_fp, "r") as f:
         best_hps = yaml.load(f, Loader=yaml.SafeLoader)
     return best_hps[idx]
-
-
-def get_data_preprocessor(dataset_name):
-    dataset = getattr(data.datasets, dataset_name)()
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    return data.get_dp(
-        dataset, constants.BATCH_SIZE, device, val_proportion=0.1
-    )
 
 
 def train_no_val(trainer, data_preprocessor, epochs):
@@ -70,4 +57,5 @@ def train_no_val(trainer, data_preprocessor, epochs):
             **train_stats,
         }
         print(line_formatter(all_stats))
+        trainer.optimizer.scheduler_step()
 

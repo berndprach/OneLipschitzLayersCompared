@@ -1,60 +1,39 @@
-import torch
-
-from src import data
-
 from scripts.util import convert_arguments_from_strings
-from src.evaluations.batch_times import evaluate_all_model_time_statistics
-from src.models.model_layer_combinations import all_combinations, get_model
+from src.data.get_data_preprocessor import get_data_preprocessor
+from src.evaluations.batch_times import get_mean_batch_seconds
+from src.models.model_layer_combinations import get_model_by_idx
 
-from .constants import get_batch_times_path
+from . import constants as c
+from .constants import SEPERATOR
 
-SEPERATOR = ";"
 NROF_BATCHES = 100
-BATCH_SIZE = 256
 
 
 @convert_arguments_from_strings
 def main(idx: int, dataset_name: str = "CIFAR10"):
-    model = get_model_from_idx(idx)
-    data_preprocessor = get_data_preprocessor(dataset_name)
-    results_fp = get_batch_times_path(dataset_name)
+    model = get_model_by_idx(idx)
+    data_preprocessor = get_data_preprocessor(dataset_name, c.BATCH_SIZE, 0.)
+    results_fp = c.get_batch_times_path(dataset_name)
 
     try:
-        save_results_to_file(model, data_preprocessor, idx, results_fp)
-        print(f"Saved measurement to {results_fp}.")
+        batch_times = evaluate_batch_times(model, data_preprocessor)
+        result_str = str(batch_times)
+        save_to_file(results_fp, idx, result_str, exception_str="None")
     except Exception as e:
-        print(f"An error occurred: {e}")
-        save_exception_to_file(e, idx, results_fp)
+        print(f"An exception occurred: {e}")
+        exception_str = str(e).replace(SEPERATOR, ",")
+        save_to_file(results_fp, idx, "None", exception_str)
         raise e
 
 
-def save_results_to_file(model, data_preprocessor, idx, results_fp):
-    result_dict = evaluate_batch_time(model, data_preprocessor, NROF_BATCHES)
+def save_to_file(results_fp, idx, result_str, exception_str="None"):
     with open(results_fp, "a") as f:
-        f.write(f"{idx}{SEPERATOR} {result_dict}{SEPERATOR} {None}\n")
+        f.write(f"{idx}{SEPERATOR}{result_str}{SEPERATOR}{exception_str}\n")
+    print(f"Saved result to {results_fp}.")
 
 
-def save_exception_to_file(exception, idx, results_fp):
-    exception_str = str(exception).replace(SEPERATOR, ",")
-    with open(results_fp, "a") as f:
-        f.write(f"{idx}{SEPERATOR} {None}{SEPERATOR} {exception_str}\n")
-
-
-def get_model_from_idx(idx):
-    model_name, layer_name = all_combinations[idx]
-    print(f"Chosen combination {idx}: "
-          f"model {model_name} and layer {layer_name}.\n")
-    return get_model(model_name, layer_name)
-
-
-def get_data_preprocessor(dataset_name):
-    dataset = getattr(data.datasets, dataset_name)()
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    return data.get_dp(dataset, BATCH_SIZE, device, val_proportion=0.)
-
-
-def evaluate_batch_time(model, data_preprocessor, nrof_batches):
-    return evaluate_all_model_time_statistics(
+def evaluate_batch_times(model, data_preprocessor, nrof_batches=NROF_BATCHES):
+    return get_mean_batch_seconds(
         model,
         train_loader=data_preprocessor.train,
         test_loader=data_preprocessor.test,

@@ -62,46 +62,6 @@ class Trainer:
         batch_tracker.update(outputs, y_batch)
 
 
-default_lf = SingleColumnLineFormatter(column_width=12)
-
-
-@dataclass
-class TrainerWithSideEffects:
-    trainer: Trainer
-    line_formatter: Callable[[dict], str] = default_lf
-    timer: run_logging.Timer = run_logging.Timer()
-    log: Callable[[str], None] = print
-
-    post_epoch_callbacks: list[Callable] = field(default_factory=list)
-
-    def __post_init__(self):
-        self.timer.start()
-
-    def process_epoch(self, data_iterator, epoch):
-        train_statistics = self.trainer.train_epoch(data_iterator.train)
-        val_statistics = self.trainer.evaluate(data_iterator.val)
-
-        all_stats = {
-            "Epoch": epoch,
-            "AvgSec": self.timer.seconds_elapsed / epoch,
-            **train_statistics,
-            **val_statistics
-        }
-        self.log(self.line_formatter(all_stats))
-
-        for cb in self.post_epoch_callbacks:
-            cb()
-
-    def train(self, data_iterator, nrof_epochs):
-        self.start_timer()
-        for epoch in range(1, nrof_epochs + 1):
-            self.process_epoch(data_iterator, epoch)
-
-    def start_timer(self):
-        self.timer.start()
-        print("Started training.")
-
-
 default_formatter = run_logging.DoubleColumnsLineFormatter(6)
 
 

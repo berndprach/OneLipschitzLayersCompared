@@ -5,23 +5,23 @@ from typing import Any
 
 import yaml
 
-from src.hyperparameters import HP, load_hp_from_dict
+from src.hyperparameters import Hyperparameters, load_hp_from_dict
 
 
 @dataclass
-class DummyHP(HP):
+class DummyHP(Hyperparameters):
     d1: int = 1
     d2: float = .1
 
 
 @dataclass
-class OtherHP(HP):
+class OtherHP(Hyperparameters):
     d1: Any = 1
     d2: Any = .1
 
 
 @dataclass
-class LastHP(HP):
+class LastHP(Hyperparameters):
     d1: Any
     d2: Any
 
