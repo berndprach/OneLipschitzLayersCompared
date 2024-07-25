@@ -16,7 +16,7 @@ def main(idx: int, dataset_name: str = "CIFAR10", nrof_hours: float = 2):
     model = get_model_by_idx(idx)
     data_preprocessor = get_data_preprocessor(dataset_name, c.BATCH_SIZE, 0.)
     epochs = step3.get_epoch_budget(idx, dataset_name, nrof_hours)
-    best_hps = get_best_hps(idx, dataset_name)
+    best_hps = get_best_hps(dataset_name)[idx]
 
     print(f"Training model {idx} for {epochs} epochs with {best_hps}")
 
@@ -31,16 +31,17 @@ def main(idx: int, dataset_name: str = "CIFAR10", nrof_hours: float = 2):
 
 def save_to(fp, final_val_stats, idx):
     with open(fp, "a") as f:
-        f.write(f"{idx}{c.SEPERATOR}{final_val_stats}\n")
+        # f.write(f"{idx}{c.SEPERATOR}{final_val_stats}\n")
+        yaml.dump({idx: final_val_stats}, f)
     print(f"Appended test set performance for file {fp}.")
 
 
-def get_best_hps(idx, dataset_name):
+def get_best_hps(dataset_name):
     best_hp_fp = c.BEST_HP_FILES[dataset_name]
     print(f"Loading best hyperparameters from {best_hp_fp}.")
     with open(best_hp_fp, "r") as f:
         best_hps = yaml.load(f, Loader=yaml.SafeLoader)
-    return best_hps[idx]
+    return best_hps
 
 
 def train_no_val(trainer, data_preprocessor, epochs):

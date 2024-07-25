@@ -26,6 +26,25 @@ python run.py scripts/step2_print_epoch_budgets.py
 python run.py scripts/step3_hp_search.py 1
 ```
 
+# Reproduce paper results:
+```{r, tidy=FALSE, eval=FALSE, highlight=FALSE }
+For i = 0 to 31 
+    >> python run.py scripts/step1_measure_batch_time.py i
+    
+>> python run.py scripts/step2_print_epoch_budgets.py
+Update data/epoch_budgets_2h/cifar10.yaml with the printed values
+
+For i = 0 to 31
+    For _ = 1 to 16
+        >> python run.py scripts/step3_hp_search.py i
+
+>> python run.py scripts/step4_print_best_hp.py
+Update data/best_hps/cifar10.yaml with the printed values
+
+For i = 0 to 31
+    >> python run.py scripts/step5_test_set_evaluation.py i
+```
+Repeat for the other datasets and other time budgets.
 
 # Requirements:
  - PyTorch

@@ -55,10 +55,15 @@ def get_trainer(epochs, model, lr, wd):
 
 
 def get_epoch_budget(idx, dataset_name, nrof_hours):
+    epoch_budgets_2h = get_epoch_budgets_2h(dataset_name)
+    epoch_budget = epoch_budgets_2h[idx] * nrof_hours // 2
+    return int(math.floor(epoch_budget))
+
+
+def get_epoch_budgets_2h(dataset_name):
     fp = c.EPOCH_BUDGETS_2H_FILES[dataset_name]
     print(f"Reading epoch budgets from {fp}.")
     with open(fp, "r") as f:
         epoch_budgets_2h = yaml.load(f, Loader=yaml.SafeLoader)
-    epoch_budget = epoch_budgets_2h[idx] * nrof_hours // 2
-    return int(math.floor(epoch_budget))
+    return epoch_budgets_2h
 
