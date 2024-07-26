@@ -19,7 +19,8 @@ class TestDatasets(unittest.TestCase):
             ds.prepare_data(val_proportion=0.2)
         except RuntimeError:
             print("\nDownloading CIFAR10 data ...")
-            ds.prepare_data(download=True, val_proportion=0.2)
+            ds.download_data()
+            ds.prepare_data(val_proportion=0.2)
         cls.ds = ds
 
     def test_channel_means_in_01(self):

@@ -40,12 +40,14 @@ class Dataset(ABC):
         self.test: Optional[ListLike] = None
 
     @abstractmethod
-    def prepare_data(self, download=False, **kwargs) -> Dataset:
+    def prepare_data(self, **kwargs) -> Dataset:
         raise NotImplementedError()
 
     @property
     def partitions(self) -> list[ListLike]:
         return [self.train, self.val, self.test]
 
+    def download_data(self):
+        raise NotImplementedError()
 
 

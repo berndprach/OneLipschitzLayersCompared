@@ -7,7 +7,12 @@ from .. import data
 
 
 def get_dp(dataset, batch_size, device, val_proportion=0.1):
-    dataset.prepare_data(download=True, val_proportion=val_proportion)
+    try:
+        dataset.prepare_data(val_proportion=val_proportion)
+    except RuntimeError:
+        dataset.download_data()
+        dataset.prepare_data(val_proportion=val_proportion)
+
     dl = DataLoader(dataset, batch_size)
     dp = DataPreprocessor(dl)
     dp.data_to(device)

@@ -10,30 +10,23 @@ Transform = torchvision.transforms.Compose
 
 CIFAR100_MEAN = [0.5071, 0.4865, 0.4409]
 
-DEFAULT_TRAIN_TRANSFORM = transforms.Compose([
-    transforms.ToTensor(),
-    transforms.Normalize(CIFAR100_MEAN, [1., 1., 1.]),
+DEFAULT_TRAIN_AUGMENTATION = transforms.Compose([
     transforms.RandomCrop(32, 4),
     transforms.RandomHorizontalFlip(),
-])
-
-DEFAULT_TEST_TRANSFORM = transforms.Compose([
-    transforms.ToTensor(),
-    transforms.Normalize(CIFAR100_MEAN, [1., 1., 1.]),
 ])
 
 
 class CIFAR100(Dataset):
     channel_means = CIFAR100_MEAN
+    augmentation = DEFAULT_TRAIN_AUGMENTATION
 
-    def prepare_data(self, download=False, val_proportion=0.1, transform=None):
+    def prepare_data(self, val_proportion=0.1, transform=None):
         if transform is None:
             transform = transforms.ToTensor()
 
         train_val = torch_datasets.CIFAR100(
             root=self.data_dir,
             train=True,
-            download=download,
             transform=transform,
         )
         self.val, self.train = split_dataset(train_val, val_proportion)
@@ -41,8 +34,12 @@ class CIFAR100(Dataset):
         self.test = torch_datasets.CIFAR100(
             root=self.data_dir,
             train=False,
-            download=download,
             transform=transform,
         )
 
         return self
+
+    def download_data(self):
+        root = self.data_dir
+        _ = torch_datasets.CIFAR100(root, train=True, download=True)
+        _ = torch_datasets.CIFAR100(root, train=False, download=True)
