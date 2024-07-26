@@ -1,6 +1,5 @@
 import os
 import tarfile
-import zipfile
 from urllib.request import urlretrieve
 
 from torch.utils.data import random_split
@@ -51,11 +50,6 @@ class AugmentedImagenette(Dataset):
         return self
 
     def download_data(self):
-        # raise NotImplementedError(
-        #     f"Please download Imagenette data manually.\n "
-        #     f"Source: https://github.com/fastai/imagenette"
-        # )
-
         url = "https://s3.amazonaws.com/fast-ai-imageclas/imagenette2-320.tgz"
         filename = os.path.join(self.data_dir, "imagenette2-320.tgz")
         if not os.path.exists(filename):

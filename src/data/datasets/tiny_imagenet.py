@@ -35,7 +35,6 @@ class TinyImageNet(Dataset):
 
         train_val_root = os.path.join(self.data_dir, DATASET_FOLDER, "train")
         train_val_data = ImageFolder(train_val_root, transform=transform)
-        print(train_val_data)
 
         # self.val, self.train = split_dataset(train_val, val_proportion)
         val_size = int(val_proportion * len(train_val_data))
