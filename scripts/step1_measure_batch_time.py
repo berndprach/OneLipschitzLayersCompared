@@ -1,5 +1,5 @@
 from scripts.util import convert_arguments_from_strings
-from src.data.get_data_preprocessor import get_data_preprocessor
+from src.data.get_data_preprocessor import get_augmented_dp
 from src.evaluations.batch_times import get_mean_batch_seconds
 from src.models.model_layer_combinations import get_model_by_idx
 
@@ -12,7 +12,7 @@ NROF_BATCHES = 100
 @convert_arguments_from_strings
 def main(idx: int, dataset_name: str = "CIFAR10"):
     model = get_model_by_idx(idx)
-    data_preprocessor = get_data_preprocessor(dataset_name, c.BATCH_SIZE, 0.)
+    data_preprocessor = get_augmented_dp(dataset_name, c.BATCH_SIZE, 0.)
     results_fp = c.get_batch_times_path(dataset_name)
 
     try:

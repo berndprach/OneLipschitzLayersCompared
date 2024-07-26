@@ -30,6 +30,8 @@ class SimpleDataset:
 
 class Dataset(ABC):
     metadata = {}
+    dataset_mean = None
+    augmentations = None
 
     def __init__(self, data_dir: str = DATA_DIR):
         self.data_dir = data_dir

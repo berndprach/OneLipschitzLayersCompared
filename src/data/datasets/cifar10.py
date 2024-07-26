@@ -8,9 +8,15 @@ from .split_dataset import split_dataset
 
 CIFAR10_MEAN = [0.49139968, 0.48215841, 0.44653091]
 
+DEFAULT_TRAIN_AUGMENTATION = transforms.Compose([
+    transforms.RandomCrop(32, 4),
+    transforms.RandomHorizontalFlip(),
+])
+
 
 class CIFAR10(Dataset):
     channel_means = CIFAR10_MEAN
+    augmentation = DEFAULT_TRAIN_AUGMENTATION
 
     def prepare_data(self, download=False, val_proportion=0.1, transform=None):
         if transform is None:
@@ -33,9 +39,3 @@ class CIFAR10(Dataset):
 
         return self
 
-
-DEFAULT_TRAIN_AUGMENTATION = transforms.Compose([
-    transforms.Normalize(mean=CIFAR10_MEAN, std=[1., 1., 1.]),
-    transforms.RandomCrop(32, 4),
-    transforms.RandomHorizontalFlip(),
-])

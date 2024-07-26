@@ -4,7 +4,7 @@ import random
 import yaml
 
 from src import metrics
-from src.data.get_data_preprocessor import get_data_preprocessor
+from src.data.get_data_preprocessor import get_augmented_dp
 from src.optimizer import OneCycleSGD
 from src.trainer import Trainer, train_model
 from src.models.model_layer_combinations import get_model_by_idx
@@ -16,7 +16,7 @@ from .util import convert_arguments_from_strings
 @convert_arguments_from_strings
 def main(idx: int, dataset_name: str = "CIFAR10", nrof_hours: float = 2):
     model = get_model_by_idx(idx)
-    data_preprocessor = get_data_preprocessor(dataset_name, c.BATCH_SIZE, 0.1)
+    data_preprocessor = get_augmented_dp(dataset_name, c.BATCH_SIZE, 0.1)
     epochs = get_epoch_budget(idx, dataset_name, nrof_hours)
     print(f"Training model {idx} for {epochs} epochs.")
 
