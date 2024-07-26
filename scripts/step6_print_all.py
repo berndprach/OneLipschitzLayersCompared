@@ -9,32 +9,40 @@ from . import step3_hp_search as step3
 from . import step5_test_set_evaluation as step5
 from .util import convert_arguments_from_strings
 
+model_sizes = {idx: comb[0] for idx, comb in enumerate(all_combinations)}
+method_names = {idx: comb[1] for idx, comb in enumerate(all_combinations)}
+
 
 @convert_arguments_from_strings
 def main(dataset_name: str = "CIFAR10", nrof_hours: float = 2):
-    model_sizes = {idx: comb[0] for idx, comb in enumerate(all_combinations)}
-    method_names = {idx: comb[1] for idx, comb in enumerate(all_combinations)}
+    # indices = list(range(31))
+    indices = [i + 8*j for i in range(8) for j in range(4)]  # by method
 
     epoch_budgets_2h = step3.get_epoch_budgets_2h(dataset_name)
+
     best_hps = step5.get_best_hps(dataset_name)
-    best_lrs = {idx: best_hps[idx]["lr"] for idx in best_hps}
-    best_wds = {idx: best_hps[idx]["wd"] for idx in best_hps}
+    best_lrs = {idx: hp["lr"] for idx, hp in best_hps.items()}
+    best_wds = {idx: hp["wd"] for idx, hp in best_hps.items()}
 
     test_stats = get_test_stats(dataset_name)
-    print(test_stats)
-    test_accs = {idx: stats["Val_Accuracy"] for idx, stats in test_stats.items()}
-    test_cras = {idx: stats["Val_CRA0.14"] for idx, stats in test_stats.items()}
+    test_accs = {
+        idx: f"{stats['Val_Accuracy']:.1%}"
+        for idx, stats in test_stats.items()
+    }
+    test_cras = {
+        idx: f"{stats['Val_CRA0.14']:.1%}"
+        for idx, stats in test_stats.items()
+    }
 
     table = Table(
-        ("Index", list(range(31))),
+        ("Index", indices),
         ("Model Size", model_sizes),
         ("Method Name", method_names),
         ("Epoch Budget", epoch_budgets_2h),
         ("Best LR", best_lrs),
         ("Best WD", best_wds),
-        # ("Test Stats", test_stats),
         ("Accuracy", test_accs),
-        ("Robust Accuracy", test_cras),
+        ("Robust Acc", test_cras),
     )
     table.draw()
 
@@ -47,25 +55,21 @@ def get_test_stats(dataset_name):
 
     with open(fp, "r") as f:
         test_stats = yaml.load(f, Loader=yaml.SafeLoader)
-        # for line in f:
-        #     idx_str, stats_str = line.strip().split(c.SEPERATOR)
-        #     idx = int(idx_str)
-        #     stats = yaml.load(stats_str, Loader=yaml.SafeLoader)
-        #     test_stats[idx] = stats
     return test_stats
 
 
 class Table:
-    def __init__(self, indices, *columns):
-        self.keys = indices[1]
-        id_dict = {idx: str(idx) for idx in self.keys}
-        self.column_names = [indices[0]] + [col[0] for col in columns]
-        self.column_dicts = [id_dict] + [col[1] for col in columns]
+    def __init__(self, key_column, *columns):
+        self.keys = key_column[1]
+        self.column_names = [key_column[0]] + [col[0] for col in columns]
+        self.column_dicts = [col[1] for col in columns]
 
     def draw(self):
+        print()
         self._draw_header()
         for key in self.keys:
             self._draw_row(key)
+        print()
 
     def _draw_header(self):
         column_names = [f"{name[:12]: <12}" for name in self.column_names]
@@ -74,7 +78,31 @@ class Table:
         print("-" * len(header))
 
     def _draw_row(self, key):
-        values = [cd.get(key, " - ") for cd in self.column_dicts]
+        values = [key] + [cd.get(key, " - ") for cd in self.column_dicts]
         entries = [f"{str(v)[:12]: ^12}" for v in values]
         row = " | ".join(entries)
         print(row)
+
+
+# class Table:
+#     def __init__(self, *columns):
+#         self.column_names = [col[0] for col in columns]
+#         self.column_values = [col[1] for col in columns]
+#         self.w = 12  # entry width
+#
+#     def draw(self):
+#         self._draw_header()
+#         for row_values in zip(*self.column_values):
+#             self._draw_row(row_values)
+#
+#     def _draw_header(self):
+#         column_names = [f"{name[:self.w]: <{self.w}}"
+#                         for name in self.column_names]
+#         header = " | ".join(column_names)
+#         print(header)
+#         print("-" * len(header))
+#
+#     def _draw_row(self, row_values):
+#         entries = [f"{str(v)[:self.w]: ^{self.w}}" for v in row_values]
+#         row = " | ".join(entries)
+#         print(row)
