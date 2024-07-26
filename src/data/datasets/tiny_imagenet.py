@@ -1,50 +1,60 @@
 import os
 import zipfile
+from functools import partial
 
-from typing import Any, Callable, Optional
 from urllib.request import urlretrieve
 from torch.utils.data import random_split
 from torchvision import transforms
 from torchvision.datasets import ImageFolder
+from torchvision.transforms import ToTensor
 
-from . import split_dataset
 from .dataset import Dataset
-
+from .transform_dataset import apply_x_transform
 
 DATASET_URL = 'http://cs231n.stanford.edu/tiny-imagenet-200.zip'
 DATASET_FOLDER = 'tiny-imagenet-200'
 DATASET_ZIP_FN = 'tiny-imagenet-200.zip'
 VAL_ANNOTATION_FN = 'val_annotations.txt'
 
+TINY_IMAGENET_MEAN = [0.480, 0.448, 0.398]
+# [0.43549561500549316, 0.4132375121116638, 0.3745059370994568] ?
 
-TINY_IMAGENET_MEAN = [0.4802, 0.4481, 0.3975]
+# DEFAULT_TRAIN_AUGMENTATION = transforms.Compose([
+#     transforms.RandAugment(2, 9),
+#     # transforms.RandomHorizontalFlip(),
+# ])
 
-DEFAULT_TRAIN_AUGMENTATION = transforms.Compose([
-    transforms.RandAugment(2, 9),
-    # transforms.RandomHorizontalFlip(),
-])
+
+def no_aug(x):
+    return x
+
+
+dtf_train = transforms.RandAugment(2, 9)
 
 
 class TinyImageNet(Dataset):
     channel_means = TINY_IMAGENET_MEAN
-    augmentation = DEFAULT_TRAIN_AUGMENTATION
+    augmentation = no_aug
 
-    def prepare_data(self, val_proportion=0.1, transform=None) -> Dataset:
-        if transform is None:
-            transform = transforms.ToTensor()
+    def __init__(self, train_augmentation=dtf_train, **kwargs):
+        super().__init__(**kwargs)
+        self.ds_augmentation = train_augmentation
 
+    def prepare_data(self, val_proportion=0.1) -> Dataset:
         train_val_root = os.path.join(self.data_dir, DATASET_FOLDER, "train")
-        train_val_data = ImageFolder(train_val_root, transform=transform)
+        train_val_data = ImageFolder(train_val_root, transform=None)
 
         # self.val, self.train = split_dataset(train_val, val_proportion)
         val_size = int(val_proportion * len(train_val_data))
         train_size = len(train_val_data) - val_size
-        self.train, self.val = random_split(
-            train_val_data, [train_size, val_size]
-        )
+        train, val = random_split(train_val_data, [train_size, val_size])
+
+        train_tf = transforms.Compose([self.ds_augmentation, ToTensor()])
+        self.train = apply_x_transform(train, train_tf)
+        self.val = apply_x_transform(val, ToTensor())
 
         test_root = os.path.join(self.data_dir, DATASET_FOLDER, "val")
-        self.test = ImageFolder(test_root, transform=transform)
+        self.test = ImageFolder(test_root, transform=transforms.ToTensor())
 
         return self
 
@@ -80,3 +90,9 @@ class TinyImageNet(Dataset):
                 # remove empty image folder
                 os.rmdir(os.path.join(val_dir, "images"))
             print("Done.")
+
+
+# TRAIN_DS_AUGMENTATION = transforms.RandAugment(2, 9)
+# AugTinyImageNet = partial(TinyImageNet, TRAIN_DS_AUGMENTATION)
+
+NoAugTinyImageNet = partial(TinyImageNet, train_augmentation=no_aug)

@@ -1,51 +1,62 @@
 import os
 import tarfile
+from functools import partial
 from urllib.request import urlretrieve
 
 from torch.utils.data import random_split
 from torchvision.datasets import ImageFolder
 from torchvision import transforms
-from torch.utils.data import Dataset as TorchDataset
 
 from .dataset import Dataset
-
+from .transform_dataset import apply_x_transform
 
 TRAIN_VAL_SUBFOLDER = os.path.join("imagenette2-320", "train")
 TEST_SUBFOLDER = os.path.join("imagenette2-320", "val")
 
 # Approximate mean, due to random crop augmentation:
-IMAGENETTE_MEAN = [0.46, 0.45, 0.42]
+IMAGENETTE_MEAN = [0.465, 0.452, 0.423]
 
 
-train_transform = transforms.Compose([
+dtf_train = transforms.Compose([
     transforms.RandAugment(2, 9),
     transforms.RandomResizedCrop(256),
     transforms.ToTensor(),
-    transforms.Normalize(IMAGENETTE_MEAN, [1., 1., 1.]),
+    # transforms.Normalize(IMAGENETTE_MEAN, [1., 1., 1.]),
     # transforms.RandomHorizontalFlip(),
 ])
 
-test_transform = transforms.Compose([
+dtf_test = transforms.Compose([
     transforms.CenterCrop(256),
     transforms.ToTensor(),
-    transforms.Normalize(IMAGENETTE_MEAN, [1., 1., 1.]),
+    # transforms.Normalize(IMAGENETTE_MEAN, [1., 1., 1.]),
 ])
 
 
-class AugmentedImagenette(Dataset):
-    """
-    Data from https://github.com/fastai/imagenette
-    """
-    channel_means = [0., 0., 0.]  # means post augmentation
-    # augmentation = lambda *args: args  # no further augmentation needed
-    augmentation = transforms.Compose([])  # no further augmentation needed
+class Imagenette(Dataset):
+    """ Data from https://github.com/fastai/imagenette. """
+    # channel_means = [0., 0., 0.]  # means post augmentation
+    channel_means = IMAGENETTE_MEAN
+    augmentation = transforms.Compose([])  # all augmentation done on dataset.
+
+    def __init__(self,
+                 train_transform=dtf_train,
+                 test_transform=dtf_test,
+                 **kwargs):
+        super().__init__(**kwargs)
+        self.train_transform = train_transform
+        self.test_transform = test_transform
 
     def prepare_data(self, val_proportion=0.1, **kwargs):
         self.train, self.val = get_imagenette_train_val(
             self.data_dir,
             val_proportion,
+            self.train_transform,
+            self.test_transform
         )
-        self.test = get_imagenette_test(self.data_dir)
+        self.test = get_imagenette_test(
+            self.data_dir,
+            self.test_transform
+        )
 
         return self
 
@@ -66,7 +77,7 @@ class AugmentedImagenette(Dataset):
             print("Done.")
 
 
-def get_imagenette_train_val(data_dir, val_proportion):
+def get_imagenette_train_val(data_dir, val_proportion, train_tf, val_tf):
     train_val_path = os.path.join(data_dir, TRAIN_VAL_SUBFOLDER)
     train_val_data = ImageFolder(root=train_val_path, transform=None)
 
@@ -74,30 +85,17 @@ def get_imagenette_train_val(data_dir, val_proportion):
     train_size = len(train_val_data) - val_size
     train_ds, val_ds = random_split(train_val_data, [train_size, val_size])
 
-    train_ds_tf = AugmentedDataset(train_ds, train_transform)
-    val_ds_tf = AugmentedDataset(val_ds, test_transform)
+    train_ds_tf = apply_x_transform(train_ds, train_tf)
+    val_ds_tf = apply_x_transform(val_ds, val_tf)
     return train_ds_tf, val_ds_tf
 
 
-def get_imagenette_test(data_dir):
+def get_imagenette_test(data_dir, test_transform):
     test_path = os.path.join(data_dir, TEST_SUBFOLDER)
     test_data = ImageFolder(root=test_path, transform=None)
-    test_ds_tf = AugmentedDataset(test_data, test_transform)
+    test_ds_tf = apply_x_transform(test_data, test_transform)
     return test_ds_tf
 
 
-class AugmentedDataset(TorchDataset):
-    """
-    Add transformations or augmentations to the data directly.
-    E.g. useful to get all images to the same size before batching.
-    """
-    def __init__(self, base_dataset, x_transform):
-        self.base_dataset = base_dataset
-        self.x_transform = x_transform
+NoAugImagenette = partial(Imagenette, train_transform=dtf_test)
 
-    def __getitem__(self, index):
-        x, *rest = self.base_dataset[index]
-        return self.x_transform(x), *rest
-
-    def __len__(self):
-        return len(self.base_dataset)
