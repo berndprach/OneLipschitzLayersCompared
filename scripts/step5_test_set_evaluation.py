@@ -23,7 +23,7 @@ def main(idx: int, dataset_name: str = "CIFAR10", nrof_hours: float = 2):
     trainer = step3.get_trainer(epochs, model, best_hps["lr"], best_hps["wd"])
     train_no_val(trainer, data_preprocessor, epochs)
 
-    final_val_stats = trainer.evaluate(data_preprocessor.test)
+    final_val_stats = trainer.evaluate(data_preprocessor.test, prefix="Test_")
 
     fp = c.get_test_results_path(dataset_name)
     save_to(fp, final_val_stats, idx)

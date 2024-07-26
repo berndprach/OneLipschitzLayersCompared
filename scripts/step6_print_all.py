@@ -21,8 +21,9 @@ def main(dataset_name: str = "CIFAR10", nrof_hours: float = 2):
     best_wds = {idx: best_hps[idx]["wd"] for idx in best_hps}
 
     test_stats = get_test_stats(dataset_name)
-    test_accs = {idx: stats["Accuracy"] for idx, stats in test_stats.items()}
-    test_cras = {idx: stats["CRA36"] for idx, stats in test_stats.items()}
+    print(test_stats)
+    test_accs = {idx: stats["Val_Accuracy"] for idx, stats in test_stats.items()}
+    test_cras = {idx: stats["Val_CRA0.14"] for idx, stats in test_stats.items()}
 
     table = Table(
         ("Index", list(range(31))),

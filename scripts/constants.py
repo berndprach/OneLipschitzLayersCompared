@@ -41,6 +41,9 @@ BEST_HP_FILES = {
 
 def get_batch_times_path(dataset_name: str):
     # return os.path.join(OUTPUT_DIR, f"batch_times_{dataset_name}.csv")
+    ds_path = os.path.join(OUTPUT_DIR, dataset_name)
+    if not os.path.exists(ds_path):
+        os.makedirs(ds_path)
     return os.path.join(OUTPUT_DIR, dataset_name, f"batch_times.csv")
 
 
