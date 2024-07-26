@@ -32,6 +32,6 @@ def get_augmented_dp(dataset_name, batch_size, val_proportion=0.1):
     dp = get_dp(ds, batch_size, device, val_proportion)
 
     dp.apply_to_all_xs(Normalize(mean=ds.channel_means, std=[1., 1., 1.]))
-    dp.train.apply_to_x(ds.autmentation)
+    dp.train.apply_to_x(ds.augmentation)
 
     return dp
