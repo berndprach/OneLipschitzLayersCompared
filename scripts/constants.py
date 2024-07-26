@@ -31,12 +31,24 @@ os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 
 DATA_DIR = "data"
-EPOCH_BUDGETS_2H_FILES = {
-    "CIFAR10": os.path.join(DATA_DIR, "epoch_budgets_2h", "cifar10.yaml"),
+FILE_NAMES = {
+    "CIFAR10": "cifar10.yaml",
+    "CIFAR100": "cifar100.yaml",
+    "TinyImageNet": "tiny_imagenet.yaml",
+    "AugmentedImagenette": "imagenette.yaml",
 }
-BEST_HP_FILES = {
-    "CIFAR10": os.path.join(DATA_DIR, "best_hps", "cifar10.yaml"),
-}
+
+# EPOCH_BUDGETS_2H_FILES = {
+#     "CIFAR10": os.path.join(DATA_DIR, "epoch_budgets_2h", "cifar10.yaml"),
+#     "CIFAR100": os.path.join(DATA_DIR, "epoch_budgets_2h", "cifar100.yaml"),
+#     "TinyImageNet": os.path.join(DATA_DIR, "epoch_budgets_2h", "tiny_imagenet.yaml"),
+#     "AugmentedImagenette": os.path.join(DATA_DIR, "epoch_budgets_2h", "imagenette.yaml"),
+# }
+# BEST_HP_FILES = {
+#     "CIFAR10": os.path.join(DATA_DIR, "best_hps", "cifar10.yaml"),
+# }
+EPOCH_BUDGETS_2H_FILES = {ds_name: os.path.join(DATA_DIR, "epoch_budgets_2h", fn) for ds_name, fn in FILE_NAMES.items()}
+BEST_HP_FILES = {ds_name: os.path.join(DATA_DIR, "best_hps", fn) for ds_name, fn in FILE_NAMES.items()}
 
 
 def get_batch_times_path(dataset_name: str):

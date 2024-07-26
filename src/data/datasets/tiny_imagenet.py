@@ -26,6 +26,9 @@ DEFAULT_TRAIN_AUGMENTATION = transforms.Compose([
 
 
 class TinyImageNet(Dataset):
+    channel_means = TINY_IMAGENET_MEAN
+    augmentation = DEFAULT_TRAIN_AUGMENTATION
+
     def prepare_data(self, val_proportion=0.1, transform=None) -> Dataset:
         if transform is None:
             transform = transforms.ToTensor()

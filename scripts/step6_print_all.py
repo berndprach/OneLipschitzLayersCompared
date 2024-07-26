@@ -12,6 +12,9 @@ from .util import convert_arguments_from_strings
 model_sizes = {idx: comb[0] for idx, comb in enumerate(all_combinations)}
 method_names = {idx: comb[1] for idx, comb in enumerate(all_combinations)}
 
+acc_key = "Test_Accuracy"
+cra_key = "Test_CRA0.14"
+default_value = " - "
 
 @convert_arguments_from_strings
 def main(dataset_name: str = "CIFAR10", nrof_hours: float = 2):
@@ -26,11 +29,12 @@ def main(dataset_name: str = "CIFAR10", nrof_hours: float = 2):
 
     test_stats = get_test_stats(dataset_name)
     test_accs = {
-        idx: f"{stats['Val_Accuracy']:.1%}"
+        idx: as_perc(stats.get(acc_key, default_value))
         for idx, stats in test_stats.items()
     }
     test_cras = {
-        idx: f"{stats['Val_CRA0.14']:.1%}"
+        # idx: f"{stats['Val_CRA0.14']:.1%}"
+        idx: as_perc(stats.get(cra_key, default_value))
         for idx, stats in test_stats.items()
     }
 
@@ -56,6 +60,13 @@ def get_test_stats(dataset_name):
     with open(fp, "r") as f:
         test_stats = yaml.load(f, Loader=yaml.SafeLoader)
     return test_stats
+
+
+def as_perc(v):
+    try:
+        return f"{v:.1%}"
+    except ValueError:
+        return v
 
 
 class Table:
