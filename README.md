@@ -27,6 +27,7 @@ python run.py scripts/step3_hp_search.py 1
 ```
 
 # Reproduce Experiments from the Paper:
+Follow the pseudocode below:
 ```{r, tidy=FALSE, eval=FALSE, highlight=FALSE }
 For i = 0 to 31 
     >> python run.py scripts/step1_measure_batch_time.py i
