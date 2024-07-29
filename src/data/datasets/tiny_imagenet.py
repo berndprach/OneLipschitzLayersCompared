@@ -34,7 +34,7 @@ dtf_train = transforms.RandAugment(2, 9)
 
 class TinyImageNet(Dataset):
     channel_means = TINY_IMAGENET_MEAN
-    augmentation = no_aug
+    augmentation = staticmethod(no_aug)
 
     def __init__(self, train_augmentation=dtf_train, **kwargs):
         super().__init__(**kwargs)

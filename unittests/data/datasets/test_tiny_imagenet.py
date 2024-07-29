@@ -38,6 +38,9 @@ class TestTinyImagenet(unittest.TestCase):
         ds.prepare_data()
         dp = data.get_dp(ds, 32, "cpu")
 
+        self.validate_shapes(dp)
+
+    def validate_shapes(self, dp):
         x_batch, y_batch = next(iter(dp.train))
         self.assertEqual(x_batch.shape, (32, 3, 64, 64))
         self.assertEqual(y_batch.shape, (32,))
@@ -46,5 +49,12 @@ class TestTinyImagenet(unittest.TestCase):
         self.assertEqual(x_batch.shape, (32, 3, 64, 64))
         self.assertEqual(y_batch.shape, (32,))
 
+        x_batch, y_batch = next(iter(dp.test))
+        self.assertEqual(x_batch.shape, (32, 3, 64, 64))
+        self.assertEqual(y_batch.shape, (32,))
+
+    def test_with_augmentation(self):
+        ds = data.get_data_preprocessor.get_augmented_dp("TinyImageNet", 32)
+        self.validate_shapes(ds)
 
 
