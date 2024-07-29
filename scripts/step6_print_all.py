@@ -78,15 +78,19 @@ class Table:
     def draw(self):
         print()
         self._draw_header()
-        for key in self.keys:
+        for i, key in enumerate(self.keys):
+            if i % 4 == 0:
+                print("-" * self.column_width)
             self._draw_row(key)
+
         print()
 
     def _draw_header(self):
         column_names = [f"{name[:12]: <12}" for name in self.column_names]
         header = " | ".join(column_names)
+        self.column_width = len(header)
         print(header)
-        print("-" * len(header))
+        # print("-" * len(header))
 
     def _draw_row(self, key):
         values = [key] + [cd.get(key, " - ") for cd in self.column_dicts]
