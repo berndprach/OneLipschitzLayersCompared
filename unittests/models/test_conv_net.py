@@ -35,11 +35,11 @@ class TestSimplifiedConvNet(unittest.TestCase):
             self.assertTrue(p_lb < _count_parameters(cn) < 2*p_lb)
 
     def test_different_resolutions(self):
-        cn = models.simplified_conv_net.create_from_size("XS", 64)
+        cn = models.simplified_conv_net.create_from_size("XS", 6)
         self.assertEqual(_count(torch.nn.Conv2d, cn), 6*5 + 2)
         self.assertTrue(1*MIL < _count_parameters(cn) <= 2*MIL)
 
-        cn = models.simplified_conv_net.create_from_size("M", 256)
+        cn = models.simplified_conv_net.create_from_size("M", 8)
         self.assertEqual(_count(torch.nn.Conv2d, cn), 8*5 + 2)
         self.assertTrue(16*MIL < _count_parameters(cn) <= 32*MIL)
 
