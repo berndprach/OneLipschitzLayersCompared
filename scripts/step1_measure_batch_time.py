@@ -13,7 +13,7 @@ NROF_BATCHES = 100
 @convert_arguments_from_strings
 def main(idx: int, dataset_name: str = "CIFAR10"):
     model = get_model_by_idx(idx, c.NROF_BLOCKS[dataset_name])
-    data_preprocessor = get_augmented_dp(dataset_name, c.BATCH_SIZE, 0.)
+    data_preprocessor = get_augmented_dp(dataset_name, c.BATCH_SIZE[dataset_name], 0.)
     results_fp = c.get_batch_times_path(dataset_name)
 
     try:

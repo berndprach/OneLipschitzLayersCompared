@@ -2,7 +2,13 @@ import os
 
 from src import metrics
 
-BATCH_SIZE = 256
+# BATCH_SIZE = 256
+BATCH_SIZE = {
+    "CIFAR10": 256,
+    "CIFAR100": 256,
+    "TinyImageNet": 256,
+    "Imagenette": 64,
+}
 SEPERATOR = "; "
 
 NROF_BLOCKS = {
