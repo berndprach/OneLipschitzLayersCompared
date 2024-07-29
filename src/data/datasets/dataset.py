@@ -32,7 +32,6 @@ class Dataset(ABC):
     metadata = {}
     channel_means = None
     augmentation = None
-    input_resolution = None
 
     def __init__(self, data_dir: str = DATA_DIR):
         self.data_dir = data_dir
