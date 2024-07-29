@@ -20,6 +20,13 @@ def main(dataset_name: str = "CIFAR10"):
         epoch_budget = get_epoch_budget(dataset_name, time_per_batch)
         epoch_budgets[idx] = epoch_budget
 
+    for i in range(8):
+        for j in range(4):
+            idx = i + 8*j
+            v = epoch_budgets.get(idx, " - ")
+            print(f"{str(v)[:8]: ^8}", end=" ")
+        print()
+
     print("Epoch Budgets:")
     print(yaml.dump(epoch_budgets))
 
@@ -65,3 +72,4 @@ def get_batch_times(dataset_name):
             results[int(idx_str)] = eval(result_dict_str)
 
     return results
+

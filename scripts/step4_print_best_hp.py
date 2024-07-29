@@ -7,9 +7,6 @@ import yaml
 
 from . import constants as c
 
-BUDGET_SECONDS = 2 * 60 * 60  # 2 hours
-NROF_BATCHES_IN_EPOCH = 50_000 // 256 + 1
-
 
 def main(dataset_name: str = "CIFAR10"):
     results = get_results(dataset_name)
@@ -20,13 +17,6 @@ def main(dataset_name: str = "CIFAR10"):
 
     fp = c.BEST_HP_FILES[dataset_name]
     print(f"Save epoch budgets to file {fp} in order to use it for training.")
-
-
-def get_epoch_budget(time_per_batch, nrof_hours=2):
-    time_per_epoch = time_per_batch * NROF_BATCHES_IN_EPOCH
-    budget_seconds = nrof_hours * 60 * 60
-    epoch_budget = int(math.floor(budget_seconds / time_per_epoch))
-    return epoch_budget
 
 
 def get_results(dataset_name: str):
@@ -63,7 +53,7 @@ def get_results_from_file(f) -> ResultsByIndex:
         if idx not in results:
             results[idx] = []
 
-        result = Result(eval(hp_dict_str), eval(final_stats_str))
+        result = Result(eval(hp_dict_str), eval(final_stats_str.replace("nan", "-1.")))
         results[idx].append(result)
         # results[idx].append((eval(hp_dict_str), eval(final_stats_str)))
     return results
