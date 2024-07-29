@@ -91,8 +91,8 @@ def create(*args, **kwargs) -> nn.Sequential:
     return get_conv_net(hp)
 
 
-def create_from_size(size_name: str, input_resolution: int = 32, **kwargs):
-    nrof_blocks = integer_log2(input_resolution)
+def create_from_size(size_name: str, nrof_blocks: int = 5, **kwargs):
+    # nrof_blocks = integer_log2(input_resolution)
     final_width = BASE_WIDTHS[size_name] * 2**5
     base_width = final_width // 2**nrof_blocks
 

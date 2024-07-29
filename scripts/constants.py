@@ -5,6 +5,13 @@ from src import metrics
 BATCH_SIZE = 256
 SEPERATOR = "; "
 
+NROF_BLOCKS = {
+    "CIFAR10": 5,
+    "CIFAR100": 5,
+    "TinyImageNet": 6,
+    "Imagenette": 8,
+}
+
 ROB_EPS = 36 / 255
 LOSS_OFFSET = 2 * 2 ** 0.5 * ROB_EPS
 LOSS_TEMPERATURE = 1 / 4
